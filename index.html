@@ -163,6 +163,18 @@
       color: var(--primary);
       font-size: 0.9rem;
     }
+    .result-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .result-content {
+      flex: 1;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: monospace;
+      outline: none;
+    }
     @media (max-width: 600px) {
       body { padding: 10px; }
       .card { padding: 15px; }
@@ -247,16 +259,19 @@
           hideSpinner();
           resultDiv.style.display = 'flex';
           if (code) {
-            resultDiv.innerHTML = '✓ ' + code.data + ' <button class="copy-btn" aria-label="Copy result" title="Copy result">📋</button>';
+            resultDiv.innerHTML = `
+              <div class="result-icon" aria-hidden="true">✓</div>
+              <div class="result-content" tabindex="0" role="textbox" aria-readonly="true">${code.data}</div>
+              <button class="copy-btn" aria-label="Copy result" title="Copy result">📋</button>
+              <span class="copy-feedback" aria-live="assertive"></span>
+            `;
             resultDiv.classList.add('success');
             const copyBtn = resultDiv.querySelector('.copy-btn');
             copyBtn.addEventListener('click', () => {
               navigator.clipboard.writeText(code.data).then(() => {
-                const feedback = document.createElement('span');
-                feedback.className = 'copy-feedback';
-                feedback.textContent = 'Copied!';
-                resultDiv.appendChild(feedback);
-                setTimeout(() => feedback.remove(), 2000);
+                const feedbackEl = resultDiv.querySelector('.copy-feedback');
+                feedbackEl.textContent = 'Copied!';
+                setTimeout(() => feedbackEl.textContent = '', 2000);
               });
             });
           } else {
@@ -317,10 +332,22 @@
     }
     function processScanResult(text) {
       hideSpinner(); stopCamera();
-      resultDiv.innerHTML = '✓ ' + text + ' <button class="copy-btn" aria-label="Copy result" title="Copy result">📋</button>';
+      resultDiv.innerHTML = `
+        <div class="result-icon" aria-hidden="true">✓</div>
+        <div class="result-content" tabindex="0" role="textbox" aria-readonly="true">${text}</div>
+        <button class="copy-btn" aria-label="Copy result" title="Copy result">📋</button>
+        <span class="copy-feedback" aria-live="assertive"></span>
+      `;
       resultDiv.className = 'result success';
       resultDiv.style.display = 'flex';
-      resultDiv.querySelector('.copy-btn').addEventListener('click', () => navigator.clipboard.writeText(text));
+      const copyBtn2 = resultDiv.querySelector('.copy-btn');
+      copyBtn2.addEventListener('click', () => {
+        navigator.clipboard.writeText(text).then(() => {
+          const feedbackEl = resultDiv.querySelector('.copy-feedback');
+          feedbackEl.textContent = 'Copied!';
+          setTimeout(() => feedbackEl.textContent = '', 2000);
+        });
+      });
     }
 
     ['dragenter','dragover'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('highlight'); }));
