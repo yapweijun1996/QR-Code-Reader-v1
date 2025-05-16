@@ -75,6 +75,9 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+    #imageUploadInput {
+      display: none;
+    }
     .drop-zone {
       width: 100%;
       max-width: 400px;
@@ -125,8 +128,8 @@
     <h1>QR Code Reader</h1>
   </header>
   <p id="instructions">Select an image or scan using your camera to read a QR code.</p>
-  <div id="dropZone" class="drop-zone" tabindex="0" aria-label="Drop or paste an image">
-    Drag & drop image here, or paste (Ctrl+V)
+  <div id="dropZone" class="drop-zone" tabindex="0" aria-label="Drop, click, or paste an image">
+    Drag & drop image here, click to upload, or paste (Ctrl+V)
   </div>
   <section class="controls" aria-label="QR code reading options">
     <div>
@@ -211,6 +214,21 @@
             break;
           }
         }
+      }
+    });
+
+    // Click or keyboard support for drop-zone
+    dropZone.addEventListener('click', () => imageInput.click());
+    dropZone.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        imageInput.click();
+      }
+    });
+    // File input change listener
+    imageInput.addEventListener('change', () => {
+      if (imageInput.files.length) {
+        processImageFile(imageInput.files[0]);
       }
     });
 
