@@ -191,6 +191,14 @@
       white-space: nowrap;
       border: 0;
     }
+    .camera-preview {
+      width: 100%;
+      border-radius: 6px;
+      max-height: 300px;
+      object-fit: cover;
+      margin-bottom: 20px;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -292,10 +300,15 @@
           scanning = true; activeStream = stream;
           cameraButton.disabled = true; cameraButton.textContent = 'Scanning...';
           cancelButton.style.display = 'block';
+          // hide drop zone and show camera preview
+          dropZone.style.display = 'none';
           const video = document.createElement('video');
+          video.id = 'cameraPreview';
+          video.className = 'camera-preview';
           video.setAttribute('playsinline', '');
           video.srcObject = stream;
-          document.querySelector('.card').appendChild(video);
+          // insert camera preview before the camera button
+          dropZone.parentNode.insertBefore(video, cameraButton);
           video.play().then(() => {
             hideSpinner();
             function scanFrame() {
@@ -327,7 +340,10 @@
       cameraButton.disabled = false; cameraButton.textContent = 'Scan with Camera';
       cancelButton.style.display = 'none';
       if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
-      const video = document.querySelector('.card video'); if (video) video.remove();
+      // remove camera preview and restore drop zone
+      const videoEl = document.getElementById('cameraPreview');
+      if (videoEl) videoEl.remove();
+      dropZone.style.display = '';  
       hideSpinner();
     }
     function processScanResult(text) {
