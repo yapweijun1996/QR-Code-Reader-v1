@@ -168,6 +168,17 @@
       .card { padding: 15px; }
     }
     #imageUploadInput { display: none; }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
   </style>
 </head>
 <body>
@@ -176,10 +187,17 @@
       <h1>QR Code Reader</h1>
     </div>
     <div id="spinnerOverlay" class="spinner-overlay"><div class="spinner"></div></div>
-    <label id="dropZone" class="drop-zone" role="button" tabindex="0" aria-labelledby="dropText">
-      <p id="dropText">Click, drag &amp; drop, or paste an image here</p>
+    <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-labelledby="dropText" aria-describedby="dropDesc">
+      <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="48" height="48" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M5 20h14v-2H5v2zm7-14l-5 5h3v4h4v-4h3l-5-5z"/>
+      </svg>
+      <div class="drop-content">
+        <p id="dropText">Drag &amp; drop or paste an image here, or</p>
+        <button type="button" id="selectFileButton" class="button upload-btn">Select Image</button>
+        <p id="dropDesc" class="visually-hidden">Press Enter, Space, or click to open file selector</p>
+      </div>
       <input type="file" id="imageUploadInput" accept="image/*">
-    </label>
+    </div>
     <button id="cameraButton" class="button" aria-label="Scan with Camera">
       Scan with Camera
     </button>
@@ -188,6 +206,8 @@
   </div>
   <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
   <script>
+    const selectFileButton = document.getElementById('selectFileButton');
+    selectFileButton.addEventListener('click', e => { e.stopPropagation(); imageUploadInput.click(); });
     const cancelButton = document.getElementById('cancelButton');
     cancelButton.addEventListener('click', stopCamera);
     const dropZone = document.getElementById('dropZone');
