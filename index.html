@@ -93,6 +93,25 @@
       border-color: #333;
       background-color: #f0f0f0;
     }
+    .drop-zone:focus {
+      outline: none;
+      border-color: #0056b3;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.5);
+    }
+    .controls button:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.5);
+    }
+    #result.success {
+      color: #155724;
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+    }
+    #result.error {
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+    }
     .spinner {
       border: 4px solid rgba(0,0,0,0.1);
       border-left-color: #4CAF50;
@@ -119,6 +138,31 @@
       }
       .controls > div {
         width: 48%;
+      }
+    }
+    @media (max-width: 600px) {
+      .drop-zone,
+      video {
+        width: 90vw;
+        max-width: none;
+      }
+      .controls {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        padding: 10px;
+        flex-direction: row;
+        gap: 10px;
+      }
+      .controls > div {
+        width: auto;
+        flex: 1;
+      }
+      body {
+        padding-bottom: 100px;
       }
     }
   </style>
@@ -175,7 +219,14 @@
           ctx.drawImage(img, 0, 0);
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(imageData.data, imageData.width, imageData.height);
-          resultDiv.textContent = code ? code.data : 'No QR code found.';
+          resultDiv.classList.remove('success', 'error');
+          if (code) {
+            resultDiv.textContent = code.data;
+            resultDiv.classList.add('success');
+          } else {
+            resultDiv.textContent = 'No QR code found.';
+            resultDiv.classList.add('error');
+          }
         };
         img.src = reader.result;
       };
@@ -270,7 +321,9 @@
       const code = jsQR(imageData.data, imageData.width, imageData.height);
       if (code) {
         spinner.classList.add('hidden');
+        resultDiv.classList.remove('success', 'error');
         resultDiv.textContent = code.data;
+        resultDiv.classList.add('success');
         stopCamera();
       } else {
         requestAnimationFrame(scan);
