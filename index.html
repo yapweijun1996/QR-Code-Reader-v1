@@ -55,9 +55,67 @@
       word-wrap: break-word;
       min-height: 2em;
     }
+    /* UI/UX improvements */
+    .controls button {
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .controls button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+    .controls button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    .controls input {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .drop-zone {
+      width: 100%;
+      max-width: 400px;
+      border: 2px dashed #bbb;
+      border-radius: 4px;
+      padding: 20px;
+      text-align: center;
+      color: #888;
+      margin-bottom: 20px;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    .drop-zone.highlight {
+      border-color: #333;
+      background-color: #f0f0f0;
+    }
+    .spinner {
+      border: 4px solid rgba(0,0,0,0.1);
+      border-left-color: #4CAF50;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    .spinner.hidden {
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     @media (min-width: 600px) {
       body {
         padding: 40px;
+      }
+      .controls {
+        flex-direction: row;
+        max-width: 600px;
+      }
+      .controls > div {
+        width: 48%;
       }
     }
   </style>
@@ -67,6 +125,9 @@
     <h1>QR Code Reader</h1>
   </header>
   <p id="instructions">Select an image or scan using your camera to read a QR code.</p>
+  <div id="dropZone" class="drop-zone" tabindex="0" aria-label="Drop or paste an image">
+    Drag & drop image here, or paste (Ctrl+V)
+  </div>
   <section class="controls" aria-label="QR code reading options">
     <div>
       <label for="imageUploadInput">Upload an image containing a QR code:</label>
@@ -79,6 +140,7 @@
   </section>
   <video id="video" playsinline autoplay aria-label="Camera preview"></video>
   <div id="result" role="status" aria-live="polite"></div>
+  <div id="spinner" class="spinner hidden" aria-hidden="true"></div>
   <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
   <script>
     const imageInput = document.getElementById('imageUploadInput');
@@ -86,6 +148,8 @@
     const cameraButton = document.getElementById('cameraButton');
     const video = document.getElementById('video');
     const resultDiv = document.getElementById('result');
+    const dropZone = document.getElementById('dropZone');
+    const spinner = document.getElementById('spinner');
 
     let scanning = false;
 
@@ -123,26 +187,48 @@
       scanning ? stopCamera() : startCamera();
     });
 
+    // Drop-zone events
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('highlight');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('highlight');
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('highlight');
+      if (e.dataTransfer.files.length) {
+        processImageFile(e.dataTransfer.files[0]);
+      }
+    });
+    // Paste support within drop zone
+    dropZone.addEventListener('paste', e => {
+      if (e.clipboardData && e.clipboardData.items) {
+        for (const item of e.clipboardData.items) {
+          if (item.kind === 'file' && item.type.startsWith('image/')) {
+            processImageFile(item.getAsFile());
+            break;
+          }
+        }
+      }
+    });
+
     function startCamera() {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(stream => {
-          scanning = true;
-          cameraButton.textContent = 'Stop Camera';
-          resultDiv.textContent = '';
-          video.style.display = 'block';
-          video.srcObject = stream;
-          video.setAttribute('playsinline', true);
-          video.play().then(() => {
-            requestAnimationFrame(scan);
-          });
-        })
-        .catch(err => {
-          console.error(err);
-          alert('Could not access camera.');
-        });
+      spinner.classList.remove('hidden');
+      scanning = true;
+      cameraButton.textContent = 'Stop Camera';
+      resultDiv.textContent = '';
+      video.style.display = 'block';
+      video.srcObject = stream;
+      video.setAttribute('playsinline', true);
+      video.play().then(() => {
+        requestAnimationFrame(scan);
+      });
     }
 
     function stopCamera() {
+      spinner.classList.add('hidden');
       scanning = false;
       cameraButton.textContent = 'Scan with Camera';
       video.style.display = 'none';
@@ -165,32 +251,13 @@
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const code = jsQR(imageData.data, imageData.width, imageData.height);
       if (code) {
+        spinner.classList.add('hidden');
         resultDiv.textContent = code.data;
         stopCamera();
       } else {
         requestAnimationFrame(scan);
       }
     }
-
-    // Drag-and-drop support for image files
-    document.addEventListener('dragover', e => e.preventDefault());
-    document.addEventListener('drop', e => {
-      e.preventDefault();
-      if (e.dataTransfer.files.length) {
-        processImageFile(e.dataTransfer.files[0]);
-      }
-    });
-    // Paste support for image data
-    document.addEventListener('paste', e => {
-      if (e.clipboardData && e.clipboardData.items) {
-        for (const item of e.clipboardData.items) {
-          if (item.kind === 'file' && item.type.startsWith('image/')) {
-            processImageFile(item.getAsFile());
-            break;
-          }
-        }
-      }
-    });
   </script>
 </body>
 </html> 
