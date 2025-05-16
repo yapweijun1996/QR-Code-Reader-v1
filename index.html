@@ -126,8 +126,9 @@
           video.style.display = 'block';
           video.srcObject = stream;
           video.setAttribute('playsinline', true);
-          video.play();
-          requestAnimationFrame(scan);
+          video.play().then(() => {
+            requestAnimationFrame(scan);
+          });
         })
         .catch(err => {
           console.error(err);
@@ -146,6 +147,10 @@
 
     function scan() {
       if (!scanning) return;
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        requestAnimationFrame(scan);
+        return;
+      }
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
