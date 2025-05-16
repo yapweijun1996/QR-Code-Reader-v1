@@ -196,6 +196,11 @@
     let scanning = false;
     let activeStream = null;
 
+    // Feature detection: hide camera option if not supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      cameraButton.style.display = 'none';
+    }
+
     function showSpinner() { spinnerOverlay.classList.add('active'); }
     function hideSpinner() { spinnerOverlay.classList.remove('active'); }
 
