@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A simple QR code reader web app that reads QR codes from images and camera stream.">
+  <title>QR Code Reader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0;
+    }
+    #instructions {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #555;
+    }
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .controls button,
+    .controls input {
+      padding: 10px;
+      font-size: 1rem;
+      width: 100%;
+    }
+    #video {
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #ddd;
+      margin-bottom: 20px;
+      display: none;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      width: 100%;
+      max-width: 400px;
+      word-wrap: break-word;
+      min-height: 2em;
+    }
+    @media (min-width: 600px) {
+      body {
+        padding: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>QR Code Reader</h1>
+  </header>
+  <p id="instructions">Select an image or scan using your camera to read a QR code.</p>
+  <section class="controls" aria-label="QR code reading options">
+    <div>
+      <label for="imageUploadInput">Upload an image containing a QR code:</label>
+      <input type="file" id="imageUploadInput" accept="image/*" aria-label="Upload image file">
+      <button id="uploadButton" aria-label="Read QR code from uploaded image">Read QR Code from Image</button>
+    </div>
+    <div>
+      <button id="cameraButton" aria-label="Scan QR code using camera">Scan with Camera</button>
+    </div>
+  </section>
+  <video id="video" playsinline autoplay aria-label="Camera preview"></video>
+  <div id="result" role="status" aria-live="polite"></div>
+  <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+  <script>
+    const imageInput = document.getElementById('imageUploadInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const cameraButton = document.getElementById('cameraButton');
+    const video = document.getElementById('video');
+    const resultDiv = document.getElementById('result');
+
+    let scanning = false;
+
+    uploadButton.addEventListener('click', () => {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert('Please select an image file.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          resultDiv.textContent = code ? code.data : 'No QR code found.';
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    cameraButton.addEventListener('click', () => {
+      scanning ? stopCamera() : startCamera();
+    });
+
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+          scanning = true;
+          cameraButton.textContent = 'Stop Camera';
+          resultDiv.textContent = '';
+          video.style.display = 'block';
+          video.srcObject = stream;
+          video.setAttribute('playsinline', true);
+          video.play();
+          requestAnimationFrame(scan);
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Could not access camera.');
+        });
+    }
+
+    function stopCamera() {
+      scanning = false;
+      cameraButton.textContent = 'Scan with Camera';
+      video.style.display = 'none';
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    function scan() {
+      if (!scanning) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) {
+        resultDiv.textContent = code.data;
+        stopCamera();
+      } else {
+        requestAnimationFrame(scan);
+      }
+    }
+  </script>
+</body>
+</html> 
