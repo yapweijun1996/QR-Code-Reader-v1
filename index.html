@@ -199,6 +199,41 @@
       margin-bottom: 20px;
       display: block;
     }
+    /* Result layout enhancements */
+    .result-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .result-title {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text);
+      flex: 1;
+      margin: 0 8px;
+    }
+    .result-data {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -268,10 +303,15 @@
           resultDiv.style.display = 'flex';
           if (code) {
             resultDiv.innerHTML = `
-              <div class="result-icon" aria-hidden="true">✓</div>
-              <div class="result-content" tabindex="0" role="textbox" aria-readonly="true">${code.data}</div>
-              <button class="copy-btn" aria-label="Copy result" title="Copy result">📋</button>
-              <span class="copy-feedback" aria-live="assertive"></span>
+              <div class="result-wrapper">
+                <div class="result-header">
+                  <span class="result-icon" aria-hidden="true">✓</span>
+                  <h2 class="result-title">Scan Successful</h2>
+                  <button class="copy-btn" aria-label="Copy QR code" title="Copy QR code">📋 Copy</button>
+                </div>
+                <pre class="result-data" tabindex="0" role="region" aria-label="QR code content">${code.data}</pre>
+                <span class="copy-feedback" aria-live="assertive"></span>
+              </div>
             `;
             resultDiv.classList.add('success');
             const copyBtn = resultDiv.querySelector('.copy-btn');
@@ -349,10 +389,15 @@
     function processScanResult(text) {
       hideSpinner(); stopCamera();
       resultDiv.innerHTML = `
-        <div class="result-icon" aria-hidden="true">✓</div>
-        <div class="result-content" tabindex="0" role="textbox" aria-readonly="true">${text}</div>
-        <button class="copy-btn" aria-label="Copy result" title="Copy result">📋</button>
-        <span class="copy-feedback" aria-live="assertive"></span>
+        <div class="result-wrapper">
+          <div class="result-header">
+            <span class="result-icon" aria-hidden="true">✓</span>
+            <h2 class="result-title">Scan Successful</h2>
+            <button class="copy-btn" aria-label="Copy QR code" title="Copy QR code">📋 Copy</button>
+          </div>
+          <pre class="result-data" tabindex="0" role="region" aria-label="QR code content">${text}</pre>
+          <span class="copy-feedback" aria-live="assertive"></span>
+        </div>
       `;
       resultDiv.className = 'result success';
       resultDiv.style.display = 'flex';
