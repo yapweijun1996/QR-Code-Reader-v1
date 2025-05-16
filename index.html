@@ -94,7 +94,10 @@
     .drop-zone:focus {
       background-color: rgba(0,86,179,0.1);
       border-color: #0056b3;
+    }
+    .drop-zone:focus {
       outline: none;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.5);
     }
     .button {
       display: flex;
@@ -173,9 +176,9 @@
       <h1>QR Code Reader</h1>
     </div>
     <div id="spinnerOverlay" class="spinner-overlay"><div class="spinner"></div></div>
-    <label id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Drop, click, or paste an image">
-      <p id="dropText">Click, drag & drop, or paste an image here</p>
-      <input type="file" id="imageUploadInput" accept="image/*" aria-hidden="true">
+    <label id="dropZone" class="drop-zone" role="button" tabindex="0" aria-labelledby="dropText">
+      <p id="dropText">Click, drag &amp; drop, or paste an image here</p>
+      <input type="file" id="imageUploadInput" accept="image/*">
     </label>
     <button id="cameraButton" class="button" aria-label="Scan with Camera">
       Scan with Camera
@@ -305,6 +308,14 @@
     dropZone.addEventListener('click', () => imageInput.click());
     dropZone.addEventListener('paste', e => { if (e.clipboardData) for (const item of e.clipboardData.items) if (item.kind === 'file' && item.type.startsWith('image/')) processImageFile(item.getAsFile()); });
     imageInput.addEventListener('change', () => { if (imageInput.files.length) processImageFile(imageInput.files[0]); });
+
+    // Keyboard support: activate file picker on Enter or Space
+    dropZone.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        imageInput.click();
+      }
+    });
   </script>
 </body>
 </html> 
