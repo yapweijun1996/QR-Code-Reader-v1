@@ -89,12 +89,14 @@
 
     let scanning = false;
 
-    uploadButton.addEventListener('click', () => {
-      const file = imageInput.files[0];
+    // Decode QR code from an image file (upload, drop, or paste)
+    function processImageFile(file) {
       if (!file) {
-        alert('Please select an image file.');
+        alert('No image file provided.');
         return;
       }
+      if (scanning) stopCamera();
+      resultDiv.textContent = '';
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
@@ -111,6 +113,10 @@
         img.src = reader.result;
       };
       reader.readAsDataURL(file);
+    }
+
+    uploadButton.addEventListener('click', () => {
+      processImageFile(imageInput.files[0]);
     });
 
     cameraButton.addEventListener('click', () => {
@@ -165,6 +171,26 @@
         requestAnimationFrame(scan);
       }
     }
+
+    // Drag-and-drop support for image files
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop', e => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) {
+        processImageFile(e.dataTransfer.files[0]);
+      }
+    });
+    // Paste support for image data
+    document.addEventListener('paste', e => {
+      if (e.clipboardData && e.clipboardData.items) {
+        for (const item of e.clipboardData.items) {
+          if (item.kind === 'file' && item.type.startsWith('image/')) {
+            processImageFile(item.getAsFile());
+            break;
+          }
+        }
+      }
+    });
   </script>
 </body>
 </html> 
