@@ -24,4 +24,5 @@ A simple, privacy-friendly web app to scan QR codes from images or your device c
 https://yapweijun1996.github.io/QR-Code-Reader-v1/
 
 ## Preview
+![image](https://github.com/user-attachments/assets/070fb300-74cb-4e98-825f-f3fe7dafcfe6)
 
