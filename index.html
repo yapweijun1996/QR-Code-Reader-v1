@@ -239,6 +239,7 @@
           video.srcObject = stream;
           document.querySelector('.card').appendChild(video);
           video.play().then(() => {
+            hideSpinner();
             function scanFrame() {
               if (!scanning) return;
               if (video.videoWidth && video.videoHeight) {
