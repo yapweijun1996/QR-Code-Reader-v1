@@ -6,208 +6,205 @@
   <meta name="description" content="A simple QR code reader web app that reads QR codes from images and camera stream.">
   <title>QR Code Reader</title>
   <style>
+    :root {
+      --primary: #007BFF;
+      --success: #28a745;
+      --error: #dc3545;
+      --text: #333;
+      --bg: #fff;
+    }
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
+      background: #f5f5f5;
+      font-family: 'Segoe UI', sans-serif;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
-    header {
-      margin-bottom: 20px;
-    }
-    h1 {
-      margin: 0;
-    }
-    #instructions {
-      margin-bottom: 20px;
-      text-align: center;
-      color: #555;
-    }
-    .controls {
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 100%;
+    .card {
+      background: var(--bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       max-width: 400px;
-    }
-    .controls button,
-    .controls input {
-      padding: 10px;
-      font-size: 1rem;
       width: 100%;
-    }
-    #video {
-      width: 100%;
-      max-width: 400px;
-      border: 1px solid #ddd;
-      margin-bottom: 20px;
-      display: none;
-    }
-    #result {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      width: 100%;
-      max-width: 400px;
-      word-wrap: break-word;
-      min-height: 2em;
-    }
-    /* UI/UX improvements */
-    .controls button {
-      background-color: #007BFF;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    .controls button:hover:not(:disabled) {
-      background-color: #0056b3;
-    }
-    .controls button:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
-    .controls input {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    #imageUploadInput {
-      display: none;
-    }
-    .drop-zone {
-      width: 100%;
-      max-width: 400px;
-      border: 2px dashed #bbb;
-      border-radius: 4px;
       padding: 20px;
-      text-align: center;
-      color: #888;
+      position: relative;
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 20px;
-      transition: background-color 0.2s, border-color 0.2s;
     }
-    .drop-zone.highlight {
-      border-color: #333;
-      background-color: #f0f0f0;
+    .header svg {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+      fill: var(--primary);
     }
-    .drop-zone:focus {
-      outline: none;
-      border-color: #0056b3;
-      box-shadow: 0 0 0 3px rgba(0,123,255,0.5);
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--text);
     }
-    .controls button:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(0,123,255,0.5);
+    .spinner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s;
     }
-    #result.success {
-      color: #155724;
-      background-color: #d4edda;
-      border-color: #c3e6cb;
-    }
-    #result.error {
-      color: #721c24;
-      background-color: #f8d7da;
-      border-color: #f5c6cb;
+    .spinner-overlay.active {
+      visibility: visible;
+      opacity: 1;
     }
     .spinner {
       border: 4px solid rgba(0,0,0,0.1);
-      border-left-color: #4CAF50;
+      border-left-color: var(--primary);
       border-radius: 50%;
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-    .spinner.hidden {
-      display: none;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    @media (min-width: 600px) {
-      body {
-        padding: 40px;
-      }
-      .controls {
-        flex-direction: row;
-        max-width: 600px;
-      }
-      .controls > div {
-        width: 48%;
-      }
+    .drop-zone {
+      border: 2px dashed var(--primary);
+      border-radius: 6px;
+      padding: 30px;
+      text-align: center;
+      color: var(--primary);
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+      margin-bottom: 20px;
+    }
+    .drop-zone svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 10px;
+      fill: var(--primary);
+    }
+    .drop-zone.highlight,
+    .drop-zone:focus {
+      background-color: rgba(0,123,255,0.1);
+      border-color: var(--primary);
+      outline: none;
+    }
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      color: #fff;
+      background: var(--primary);
+      margin-bottom: 20px;
+    }
+    .button svg {
+      margin-right: 8px;
+      fill: currentColor;
+    }
+    .button:hover:not(:disabled) {
+      background: #0056b3;
+    }
+    .button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 10px;
+      padding: 15px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      word-break: break-all;
+    }
+    .result svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .result.success {
+      background: rgba(40,167,69,0.1);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .result.error {
+      background: rgba(220,53,69,0.1);
+      border-color: var(--error);
+      color: var(--error);
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--primary);
+      margin-left: auto;
+      font-size: 1.2rem;
     }
     @media (max-width: 600px) {
-      .drop-zone,
-      video {
-        width: 90vw;
-        max-width: none;
-      }
-      .controls {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: #fff;
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        padding: 10px;
-        flex-direction: row;
-        gap: 10px;
-      }
-      .controls > div {
-        width: auto;
-        flex: 1;
-      }
-      body {
-        padding-bottom: 100px;
-      }
+      body { padding: 10px; }
+      .card { padding: 15px; }
     }
+    #imageUploadInput { display: none; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>QR Code Reader</h1>
-  </header>
-  <p id="instructions">Select an image or scan using your camera to read a QR code.</p>
-  <div id="dropZone" class="drop-zone" tabindex="0" aria-label="Drop, click, or paste an image">
-    Drag & drop image here, click to upload, or paste (Ctrl+V)
+  <div class="card" role="main">
+    <div class="header">
+      <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm6-2h2v2h-2V3zm4 0h2v2h-2V3zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm6 6h2v2h-2v-2zm4 0h2v2h-2v-2z"/><path fill="none" d="M0 0h24v24H0z"/></svg>
+      <h1>QR Code Reader</h1>
+    </div>
+    <div id="spinnerOverlay" class="spinner-overlay"><div class="spinner"></div></div>
+    <label id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Drop, click, or paste an image">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7z"/><path d="M5 18v2h14v-2H5z"/></svg>
+      <p id="dropText">Click or drag & drop an image here</p>
+      <input type="file" id="imageUploadInput" accept="image/*" aria-hidden="true">
+    </label>
+    <button id="cameraButton" class="button" aria-label="Scan with Camera">
+      <svg viewBox="0 0 24 24"><path d="M12 5a7 7 0 0 0-7 7H3l4 4 4-4H9a5 5 0 1 1 5 5v2a7 7 0 0 0-7-7zm0-2a9 9 0 0 1 9 9h2l-4 4-4-4h2a7 7 0 0 0-7-7V5z"/></svg>
+      Scan with Camera
+    </button>
+    <div id="result" class="result" aria-live="polite"></div>
   </div>
-  <section class="controls" aria-label="QR code reading options">
-    <div>
-      <label for="imageUploadInput">Upload an image containing a QR code:</label>
-      <input type="file" id="imageUploadInput" accept="image/*" aria-label="Upload image file">
-      <button id="uploadButton" aria-label="Read QR code from uploaded image">Read QR Code from Image</button>
-    </div>
-    <div>
-      <button id="cameraButton" aria-label="Scan QR code using camera">Scan with Camera</button>
-    </div>
-  </section>
-  <video id="video" playsinline autoplay aria-label="Camera preview"></video>
-  <div id="result" role="status" aria-live="polite"></div>
-  <div id="spinner" class="spinner hidden" aria-hidden="true"></div>
   <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
   <script>
-    const imageInput = document.getElementById('imageUploadInput');
-    const uploadButton = document.getElementById('uploadButton');
-    const cameraButton = document.getElementById('cameraButton');
-    const video = document.getElementById('video');
-    const resultDiv = document.getElementById('result');
     const dropZone = document.getElementById('dropZone');
-    const spinner = document.getElementById('spinner');
-
+    const imageInput = document.getElementById('imageUploadInput');
+    const cameraButton = document.getElementById('cameraButton');
+    const resultDiv = document.getElementById('result');
+    const spinnerOverlay = document.getElementById('spinnerOverlay');
     let scanning = false;
+    let activeStream = null;
 
-    // Decode QR code from an image file (upload, drop, or paste)
+    function showSpinner() { spinnerOverlay.classList.add('active'); }
+    function hideSpinner() { spinnerOverlay.classList.remove('active'); }
+
     function processImageFile(file) {
-      if (!file) {
-        alert('No image file provided.');
-        return;
-      }
+      if (!file) return;
       if (scanning) stopCamera();
+      showSpinner();
       resultDiv.textContent = '';
+      resultDiv.className = 'result';
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
@@ -217,14 +214,15 @@
           canvas.height = img.height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
-          resultDiv.classList.remove('success', 'error');
+          const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(data, width, height);
+          hideSpinner();
           if (code) {
-            resultDiv.textContent = code.data;
+            resultDiv.innerHTML = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4L9 16.2z"/></svg><span>' + code.data + '</span><button class="copy-btn" aria-label="Copy result">📋</button>';
             resultDiv.classList.add('success');
+            resultDiv.querySelector('.copy-btn').addEventListener('click', () => navigator.clipboard.writeText(code.data));
           } else {
-            resultDiv.textContent = 'No QR code found.';
+            resultDiv.innerHTML = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 6a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-3 0v-4A1.5 1.5 0 0 1 12 8zm0 10a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg><span>No QR code found.</span>';
             resultDiv.classList.add('error');
           }
         };
@@ -233,102 +231,56 @@
       reader.readAsDataURL(file);
     }
 
-    uploadButton.addEventListener('click', () => {
-      processImageFile(imageInput.files[0]);
-    });
-
-    cameraButton.addEventListener('click', () => {
-      scanning ? stopCamera() : startCamera();
-    });
-
-    // Drop-zone events
-    dropZone.addEventListener('dragover', e => {
-      e.preventDefault();
-      dropZone.classList.add('highlight');
-    });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('highlight');
-    });
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.classList.remove('highlight');
-      if (e.dataTransfer.files.length) {
-        processImageFile(e.dataTransfer.files[0]);
-      }
-    });
-    // Paste support within drop zone
-    dropZone.addEventListener('paste', e => {
-      if (e.clipboardData && e.clipboardData.items) {
-        for (const item of e.clipboardData.items) {
-          if (item.kind === 'file' && item.type.startsWith('image/')) {
-            processImageFile(item.getAsFile());
-            break;
-          }
-        }
-      }
-    });
-
-    // Click or keyboard support for drop-zone
-    dropZone.addEventListener('click', () => imageInput.click());
-    dropZone.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        imageInput.click();
-      }
-    });
-    // File input change listener
-    imageInput.addEventListener('change', () => {
-      if (imageInput.files.length) {
-        processImageFile(imageInput.files[0]);
-      }
-    });
-
+    cameraButton.addEventListener('click', () => { scanning ? stopCamera() : startCamera(); });
     function startCamera() {
-      spinner.classList.remove('hidden');
-      scanning = true;
-      cameraButton.textContent = 'Stop Camera';
-      resultDiv.textContent = '';
-      video.style.display = 'block';
-      video.srcObject = stream;
-      video.setAttribute('playsinline', true);
-      video.play().then(() => {
-        requestAnimationFrame(scan);
-      });
+      showSpinner();
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+          scanning = true; activeStream = stream;
+          cameraButton.disabled = true; cameraButton.textContent = 'Scanning...';
+          const video = document.createElement('video');
+          video.setAttribute('playsinline', '');
+          video.srcObject = stream;
+          document.querySelector('.card').appendChild(video);
+          video.play().then(() => {
+            function scanFrame() {
+              if (!scanning) return;
+              if (video.videoWidth && video.videoHeight) {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(data, width, height);
+                if (code) { processScanResult(code.data); return; }
+              }
+              requestAnimationFrame(scanFrame);
+            }
+            scanFrame();
+          });
+        })
+        .catch(() => { hideSpinner(); alert('Camera access denied.'); });
     }
-
     function stopCamera() {
-      spinner.classList.add('hidden');
       scanning = false;
-      cameraButton.textContent = 'Scan with Camera';
-      video.style.display = 'none';
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-      }
+      cameraButton.disabled = false; cameraButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 5a7 7 0 0 0-7 7H3l4 4 4-4H9a5 5 0 1 1 5 5v2a7 7 0 0 0-7-7zm0-2a9 9 0 0 1 9 9h2l-4 4-4-4h2a7 7 0 0 0-7-7V5z"/></svg>Scan with Camera';
+      if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+      const video = document.querySelector('.card video'); if (video) video.remove();
+      hideSpinner();
+    }
+    function processScanResult(text) {
+      hideSpinner(); stopCamera();
+      resultDiv.innerHTML = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4L9 16.2z"/></svg><span>' + text + '</span><button class="copy-btn" aria-label="Copy result">📋</button>';
+      resultDiv.className = 'result success';
+      resultDiv.querySelector('.copy-btn').addEventListener('click', () => navigator.clipboard.writeText(text));
     }
 
-    function scan() {
-      if (!scanning) return;
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        requestAnimationFrame(scan);
-        return;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
-      if (code) {
-        spinner.classList.add('hidden');
-        resultDiv.classList.remove('success', 'error');
-        resultDiv.textContent = code.data;
-        resultDiv.classList.add('success');
-        stopCamera();
-      } else {
-        requestAnimationFrame(scan);
-      }
-    }
+    ['dragenter','dragover'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('highlight'); }));
+    ['dragleave','drop'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('highlight'); if (evt === 'drop' && e.dataTransfer.files.length) processImageFile(e.dataTransfer.files[0]); }));
+    dropZone.addEventListener('click', () => imageInput.click());
+    dropZone.addEventListener('paste', e => { if (e.clipboardData) for (const item of e.clipboardData.items) if (item.kind === 'file' && item.type.startsWith('image/')) processImageFile(item.getAsFile()); });
+    imageInput.addEventListener('change', () => { if (imageInput.files.length) processImageFile(imageInput.files[0]); });
   </script>
 </body>
 </html> 
